@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Place NavPoints
 // @namespace    WazeDev
-// @version      2019.07.14.003
+// @version      2020.06.04.01
 // @description  Add place entry point indicators to the map
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
@@ -10,7 +10,7 @@
 // ==/UserScript==
 
 /* global W */
-/* global OL */
+/* global OpenLayers */
 /* global $ */
 
 let _settings = {
@@ -19,7 +19,7 @@ let _settings = {
 };
 
 function drawLines() {
-    var layer = W.map.landmarkLayer;
+    var layer = W.map.venueLayer;
     layer.removeFeatures(layer.getFeaturesByAttribute('isNavLine', true));
 	if (_settings.visible && W.map.getZoom() >= 6) {
         var features = [];
@@ -35,10 +35,10 @@ function drawLines() {
             var s = findClosestSegment(pts[pts.length-1], false, false);
             if (s) {
                 pts.push(s.closestPoint);
-                var ls = new OL.Geometry.LineString(pts);
-                features.push(new OL.Feature.Vector(ls, {isNavLine: true }, {strokeColor: '#0FF', strokeWidth: 2, strokeDashstyle: '6 4'}));
+                var ls = new OpenLayers.Geometry.LineString(pts);
+                features.push(new OpenLayers.Feature.Vector(ls, {isNavLine: true }, {strokeColor: '#0FF', strokeWidth: 2, strokeDashstyle: '6 4'}));
             }
-            features.push(new OL.Feature.Vector(pts[pts.length - 1], {isNavLine: true}, {pointRadius: 4, strokeWidth: 2, fillColor: '#A00', strokeColor: '#0FF', fillOpacity: 1}));
+            features.push(new OpenLayers.Feature.Vector(pts[pts.length - 1], {isNavLine: true}, {pointRadius: 4, strokeWidth: 2, fillColor: '#A00', strokeColor: '#0FF', fillOpacity: 1}));
     	});
     	layer.addFeatures(features);
     }
@@ -75,7 +75,7 @@ function findClosestSegment(mygeometry, ignorePLR, ignoreUnnamedPR) {
         if (distanceToSegment.distance < minDistance) {
             minDistance = distanceToSegment.distance;
             closestSegment = s;
-            closestSegment.closestPoint = new OL.Geometry.Point(distanceToSegment.x1, distanceToSegment.y1);
+            closestSegment.closestPoint = new OpenLayers.Geometry.Point(distanceToSegment.x1, distanceToSegment.y1);
         }
     }
     return closestSegment;

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Place NavPoints
 // @namespace    WazeDev
-// @version      2020.07.21.001
+// @version      2020.09.09.001
 // @description  Add place entry point indicators to the map
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
@@ -67,7 +67,7 @@ function findClosestSegment(mygeometry, ignorePLR, ignoreUnnamedPR, venue) {
         let ignoreForRpp = false;
         const segmentStreetID = segment.attributes.primaryStreetID;
 
-        if (venue.isResidential()) {
+        if (venue.isResidential() && !venue.attributes.entryExitPoints.length) {
             const venueStreetID = venue.attributes.streetID;
             ignoreForRpp = !(segmentStreetID === venueStreetID
                 || (WazeWrap.Model.getStreetName(venueStreetID) === WazeWrap.Model.getStreetName(segmentStreetID)

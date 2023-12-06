@@ -6,12 +6,14 @@
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js
 // @grant        none
 // ==/UserScript==
 
 /* global W */
 /* global OpenLayers */
 /* global WazeWrap */
+/* global turf */
 
 (function main() {
     'use strict';
@@ -44,7 +46,7 @@
         W.model.venues.getObjectArray()
             .filter(venue => (
                 _settings.plaVisible || !venue.isParkingLot())
-                && bounds.intersectsBounds(venue.geometry.getBounds())
+                && bounds.intersectsBounds(venue.getOLGeometry().getBounds())
                 && (zoom >= 6 || (venue.isResidential() && !venue.attributes.entryExitPoints.length)))
             .forEach(venue => {
                 const pts = [];
@@ -52,24 +54,25 @@
                 let endPoint;
 
                 // Get the places location.
-                const placePoint = venue.geometry.getCentroid();
+                const placePoint = venue.getOLGeometry().getCentroid();
                 pts.push(placePoint);
 
                 // Get the main entry/exit point, if it exists.
                 let entryExitPoint;
                 if (venue.attributes.entryExitPoints.length) {
-                    entryExitPoint = venue.attributes.entryExitPoints[0].getPoint();
+                    entryExitPoint = W.userscripts.toOLGeometry(venue.attributes.entryExitPoints[0].getPoint());
                     endPoint = entryExitPoint;
                     pts.push(entryExitPoint);
                 } else {
                     endPoint = placePoint;
                 }
 
-                const closestSegment = findClosestSegment(endPoint, false, false);
+                const geoJsonEndPoint = W.userscripts.toGeoJSONGeometry(endPoint);
+                const closestSegment = findClosestSegment(geoJsonEndPoint, false, false);
                 if (closestSegment) {
                     // Find the closest point on the closest segment (the stop point).
-                    const stopPoint = closestSegment.closestPoint;
-                    pts.push(stopPoint);
+                    const stopPoint = turf.nearestPointOnLine(closestSegment.getGeometry(), geoJsonEndPoint).geometry;
+                    pts.push(W.userscripts.toOLGeometry(stopPoint));
 
                     const placeStreetID = venue.attributes.streetID;
                     if (placeStreetID) {
@@ -150,11 +153,10 @@
                 && ![10, 16, 18, 19].includes(roadType) // 10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway
                 && !(ignorePLR && roadType === 20) // PLR
                 && !(ignoreUnnamedPR && roadType === 17 && WazeWrap.Model.getStreetName(segmentStreetID) === null)) { // PR
-                const distanceToSegment = mygeometry.distanceTo(segment.geometry, { details: true });
-                if (distanceToSegment.distance < minDistance) {
-                    minDistance = distanceToSegment.distance;
+                const distanceToSegment = turf.pointToLineDistance(mygeometry, segment.getGeometry());
+                if (distanceToSegment < minDistance) {
                     closestSegment = segment;
-                    closestSegment.closestPoint = new OpenLayers.Geometry.Point(distanceToSegment.x1, distanceToSegment.y1);
+                    minDistance = distanceToSegment;
                 }
             }
         });

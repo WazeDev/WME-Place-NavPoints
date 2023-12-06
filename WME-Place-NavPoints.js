@@ -7,7 +7,8 @@
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @connect      greasyfork.org
 // ==/UserScript==
 
 /* global W */
@@ -17,6 +18,10 @@
 
 (function main() {
     'use strict';
+
+    const SCRIPT_NAME = GM_info.script.name;
+    const SCRIPT_VERSION = GM_info.script.version;
+    const DOWNLOAD_URL = 'https://update.greasyfork.org/scripts/387498/WME%20Place%20NavPoints.user.js';
 
     const _settings = {
         visible: true,
@@ -188,7 +193,18 @@
         drawLines();
     }
 
+    function loadScriptUpdateMonitor() {
+        try {
+            const updateMonitor = new WazeWrap.Alerts.ScriptUpdateMonitor(SCRIPT_NAME, SCRIPT_VERSION, DOWNLOAD_URL, GM_xmlhttpRequest);
+            updateMonitor.start();
+        } catch (ex) {
+            // Report, but don't stop if ScriptUpdateMonitor fails.
+            console.error('WME Place NavPoints:', ex);
+        }
+    }
+
     function init() {
+        loadScriptUpdateMonitor();
         const loadedSettings = JSON.parse(localStorage.getItem('wme_place_navpoints'));
         $.extend(_settings, loadedSettings);
         const drawLinesFunc = () => errorHandler(drawLines);
@@ -211,11 +227,19 @@
         $('#layer-switcher-item_pla_navpoints').attr('disabled', _settings.visible ? null : true).parent().css({ 'margin-left': '10px' });
     }
 
-    function bootstrap() {
-        if (W?.userscripts?.state.isReady && WazeWrap?.Ready) {
+    function onWmeReady() {
+        if (WazeWrap && WazeWrap.Ready) {
             init();
         } else {
-            setTimeout(bootstrap, 200);
+            setTimeout(onWmeReady, 100);
+        }
+    }
+
+    function bootstrap() {
+        if (typeof W === 'object' && W.userscripts?.state.isReady) {
+            onWmeReady();
+        } else {
+            document.addEventListener('wme-ready', onWmeReady, { once: true });
         }
     }
 

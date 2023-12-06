@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Place NavPoints
 // @namespace    WazeDev
-// @version      2023.12.06.001
+// @version      2023.12.06.002
 // @description  Add place entry point indicators to the map
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/

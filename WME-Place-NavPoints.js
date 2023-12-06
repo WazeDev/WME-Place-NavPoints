@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Place NavPoints
 // @namespace    WazeDev
-// @version      2023.12.06.002
+// @version      2023.12.06.003
 // @description  Add place entry point indicators to the map
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
@@ -158,10 +158,10 @@
                 && ![10, 16, 18, 19].includes(roadType) // 10 ped boardwalk, 16 stairway, 18 railroad, 19 runway, 3 freeway
                 && !(ignorePLR && roadType === 20) // PLR
                 && !(ignoreUnnamedPR && roadType === 17 && WazeWrap.Model.getStreetName(segmentStreetID) === null)) { // PR
-                const distanceToSegment = turf.pointToLineDistance(mygeometry, segment.getGeometry());
-                if (distanceToSegment < minDistance) {
+                const distanceToSegment = W.userscripts.toOLGeometry(mygeometry).distanceTo(segment.getOLGeometry(), { details: true });
+                if (distanceToSegment.distance < minDistance) {
+                    minDistance = distanceToSegment.distance;
                     closestSegment = segment;
-                    minDistance = distanceToSegment;
                 }
             }
         });

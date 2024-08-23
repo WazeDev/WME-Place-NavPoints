@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WME Place NavPoints
 // @namespace    WazeDev
-// @version      2023.12.06.003
+// @version      2024.08.23.000
 // @description  Add place entry point indicators to the map
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
@@ -41,12 +41,18 @@
     //     return null;
     // }
 
+    function getOLMapExtent() {
+        let extent = new OpenLayers.Bounds(W.map.getExtent());
+        extent = extent.transform('EPSG:4326', 'EPSG:3857');
+        return extent;
+    }
+
     function drawLines() {
         _layer.removeAllFeatures();
         if (!_settings.visible) return;
 
         const features = [];
-        const bounds = W.map.getExtent().scale(2.0);
+        const bounds = getOLMapExtent().scale(2.0);
         const zoom = W.map.getZoom();
         W.model.venues.getObjectArray()
             .filter(venue => (

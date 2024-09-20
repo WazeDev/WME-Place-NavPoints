@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         WME Place NavPoints
 // @namespace    WazeDev
-// @version      2024.08.23.000
+// @version      2024.09.20.000
 // @description  Add place entry point indicators to the map
 // @author       MapOMatic
 // @include      /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
 // @require      https://greasyfork.org/scripts/24851-wazewrap/code/WazeWrap.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js
+// @require      https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js
 // @grant        GM_xmlhttpRequest
 // @connect      greasyfork.org
 // ==/UserScript==
